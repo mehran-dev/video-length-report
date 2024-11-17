@@ -1,0 +1,7 @@
+Video Length Report
+Selected Directory: .
+
+Total Duration: 1h 7m 49s
+
+Per Folder Duration:
+cy1: 1h 7m 49s

@@ -1,10 +1,24 @@
-const fs = require('fs');
-const path = require('path');
-const ffmpeg = require('fluent-ffmpeg');
-const { promisify } = require('util');
+const os = require("os");
+const fs = require("fs");
+const path = require("path");
+const ffmpeg = require("fluent-ffmpeg");
+const { promisify } = require("util");
 
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
+
+let system;
+if (os.platform() === "win32" || "linux" || "darwin") {
+  // does this  have more enums ?
+  system = os.platform();
+}
+
+// Set custom paths for ffmpeg and ffprobe binaries
+const ffmpegPath = path.resolve(__dirname, "./bin/linux/bin/ffmpeg");
+const ffprobePath = path.resolve(__dirname, "./bin/linux/bin/ffprobe");
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 // Function to get duration of a video file
 const getVideoDuration = (filePath) => {
@@ -22,7 +36,7 @@ const getDurationsInDirectory = async (dir) => {
   let totalDuration = 0;
   const folderDurations = {};
 
-  const processDirectory = async (directory, relativePath = '') => {
+  const processDirectory = async (directory, relativePath = "") => {
     const files = await readdir(directory);
 
     for (const file of files) {
@@ -31,7 +45,11 @@ const getDurationsInDirectory = async (dir) => {
 
       if (fileStat.isDirectory()) {
         await processDirectory(filePath, path.join(relativePath, file));
-      } else if (file.endsWith('.mp4') || file.endsWith('.mkv') || file.endsWith('.mov')) {
+      } else if (
+        file.endsWith(".mp4") ||
+        file.endsWith(".mkv") ||
+        file.endsWith(".mov")
+      ) {
         try {
           const duration = await getVideoDuration(filePath);
           totalDuration += duration;
@@ -68,7 +86,9 @@ const main = async () => {
   try {
     console.log(`Selected directory: ${dir}`);
 
-    const { totalDuration, folderDurations } = await getDurationsInDirectory(dir);
+    const { totalDuration, folderDurations } = await getDurationsInDirectory(
+      dir
+    );
 
     // Generate report
     let report = `Video Length Report\nSelected Directory: ${dir}\n\n`;
@@ -76,17 +96,16 @@ const main = async () => {
     report += `Per Folder Duration:\n`;
 
     for (const [folder, duration] of Object.entries(folderDurations)) {
-      report += `${folder || 'Root'}: ${formatDuration(duration)}\n`;
+      report += `${folder || "Root"}: ${formatDuration(duration)}\n`;
     }
 
     // Write report to a text file
-    const reportPath = path.join(dir, 'video_length_report.txt');
+    const reportPath = path.join(dir, "video_length_report.txt");
     fs.writeFileSync(reportPath, report);
     console.log(`Report generated at: ${reportPath}`);
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 };
 
 main();
- 

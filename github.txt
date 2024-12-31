@@ -1,0 +1,5 @@
+https://github.com/BtbN/FFmpeg-Builds/releases
+
+
+working for linux : 
+ffmpeg-master-latest-linux64-gpl.tar.xz
